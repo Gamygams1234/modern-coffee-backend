@@ -9,26 +9,29 @@ const Product = require('./models/product.js');
 const Order = require('./models/order.js')
 const orderRoutes = require('./routes/orderRoutes.js')
 const initializeDatabase = require("./initializeDatabase")
+const methodOverride = require('method-override');
 // Create an Express application
 const app = express();
 
 // Middleware to parse JSON requests
 app.use(bodyParser.json());
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-    .then(() => {
-      console.log('Connected to MongoDB');
-      initializeDatabase(); // Call the initialization function
-      startServer();
-    })
-    .catch((error) => {
-      console.error('MongoDB connection error:', error);
-    });
+mongoose.connect(process.env.MONGODB_URI)
+mongoose.connection.once('open', ()=> {
+  console.log('connected to mongo')
+})
 
-    function startServer() {
+// MIDDLEWARE
+app.use(express.urlencoded({extended:true}))
+app.use(express.json())
+app.use(methodOverride('_method'))
+// app.use(session({
+//     secret: process.env.SECRET,
+//     resave: false,
+//     saveUninitialized: false
+// }))
+
+
         // Use product and order routes
         app.use('/products', productRoutes);
         app.use('/orders', orderRoutes);
@@ -37,4 +40,4 @@ mongoose.connect(process.env.MONGODB_URI, {
         app.listen(PORT, () => {
           console.log(`Server is running on port ${PORT}`);
         });
-      }
+      

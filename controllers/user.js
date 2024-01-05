@@ -31,6 +31,44 @@ const signIn = (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
+  console.log(password);
+  User.findOne({ email: email}, function(err, user) {
+    if (err) throw err;
+    
+    // test a matching password
+    user.comparePassword(password, function(err, isMatch) {
+        if (err) throw err;
+ 
+        if (isMatch) {
+            const payload = {
+              id: user._id,
+              name: user.name,
+              email: user.email,
+              role: user.role
+            };
+            jwt.sign(
+              payload,
+              process.env.ACCESS_TOKEN_SECRET,
+              {
+                expiresIn: 31556926, // 1 year in seconds
+              },
+              (err, token) => {
+                res.cookie("t", token, { expire: new Date() + 31556926})
+                res.json({
+                  success: true,
+                  token: "Bearer " + token,
+                });
+              }
+            );
+          }else{
+            res.json({
+                error: "Invalid Credentials"
+              });
+          }
+    });    
+});
+
+
   User.findOne({ email: email }, function (err, user) {
     if (user === null) {
       res.json({

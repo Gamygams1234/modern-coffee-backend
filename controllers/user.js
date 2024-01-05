@@ -1,4 +1,3 @@
-
 const jwt = require("jsonwebtoken");
 const validateRegisterInput = require("../validation/register");
 const validateLoginInput = require("../validation/signin");
@@ -6,20 +5,19 @@ const User = require("../models/user");
 
 // REGISTER USER
 const register = (req, res) => {
-
   User.findOne({ email: req.body.email }).then((user) => {
     if (user) {
       return res.status(400).json({ error: "Email already exists" });
     } else {
-        let role = 0
-        if(req.body.role){
-            role = req.body.role
-        }
+      let role = 0;
+      if (req.body.role) {
+        role = req.body.role;
+      }
       const newUser = new User({
         name: req.body.name,
         email: req.body.email,
         password: req.body.password,
-        role:role
+        role: role,
       });
       newUser
         .save()
@@ -32,66 +30,72 @@ const register = (req, res) => {
 const signIn = (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  console.log(password);
-  User.findOne({ email: email}, function(err, user) {
-    if (err) throw err;
-     
-    // test a matching password
-    user.comparePassword(password, function(err, isMatch) {
-        if (err) throw err;
- 
-        if (isMatch) {
-            const payload = {
-              id: user._id,
-              name: user.name,
-              email: user.email,
-              role: user.role
-            };
-            jwt.sign(
-              payload,
-              process.env.ACCESS_TOKEN_SECRET,
-              {
-                expiresIn: 31556926, // 1 year in seconds
-              },
-              (err, token) => {
-                res.cookie("t", token, { expire: new Date() + 31556926})
-                res.json({
-                  success: true,
-                  token: "Bearer " + token,
-                });
-              }
-            );
-          }else{
-            res.json({
-                error: "Invalid Credentials"
-              });
-          }
-    });    
-});
 
+  User.findOne({ email: email }, function (err, user) {
+    if (user === null) {
+      res.json({
+        error: "Invalid Credentials",
+      });
+    } else {
+      // test a matching password
+      user.comparePassword(password, function (err, isMatch) {
+        if (err) {
+          res.json({
+            error: err,
+          });
+        }
+        if (isMatch) {
+          const payload = {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          };
+          jwt.sign(
+            payload,
+            process.env.ACCESS_TOKEN_SECRET,
+            {
+              expiresIn: 31556926, // 1 year in seconds
+            },
+            (err, token) => {
+              res.cookie("t", token, { expire: new Date() + 31556926 });
+              res.json({
+                success: true,
+                token: "Bearer " + token,
+              });
+            }
+          );
+        } else {
+          res.json({
+            error: "Invalid Credentials",
+          });
+        }
+      });
+    }
+  });
 };
 // GET ALL USERS
-const getAllUsers = async (req, res)=>{
+const getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-}
+};
 // SIGN OUT USER
 const signOut = (req, res) => {
-    res.clearCookie("t");
-    res.json({ message: "Success" });
+  res.clearCookie("t");
+  res.json({ message: "Success" });
 };
 
-// DELETE USER 
+// DELETE USER
 const deleteUser = (req, res) => {
   const userId = req.params.id;
 
   User.findByIdAndRemove(userId)
     .then(() => {
-      res.json({ success: true, message: 'User deleted successfully' });
+      res.json({ success: true, message: "User deleted successfully" });
     })
     .catch((err) => {
       res.status(500).json({ success: false, error: err.message });
@@ -105,7 +109,7 @@ const getUserById = (req, res) => {
   User.findById(userId)
     .then((user) => {
       if (!user) {
-        return res.status(404).json({ success: false, message: 'User not found' });
+        return res.status(404).json({ success: false, message: "User not found" });
       }
 
       res.json({ success: true, user });
@@ -115,7 +119,7 @@ const getUserById = (req, res) => {
     });
 };
 
-// UPDATE USER 
+// UPDATE USER
 const updateUser = (req, res) => {
   const userId = req.params.id;
   const updateData = req.body;
@@ -123,7 +127,7 @@ const updateUser = (req, res) => {
   User.findByIdAndUpdate(userId, updateData, { new: true })
     .then((user) => {
       if (!user) {
-        return res.status(404).json({ success: false, error: 'User not found' });
+        return res.status(404).json({ success: false, error: "User not found" });
       }
 
       res.json({ success: true, user });
@@ -140,6 +144,5 @@ module.exports = {
   deleteUser,
   getUserById,
   updateUser,
-  getAllUsers
+  getAllUsers,
 };
-

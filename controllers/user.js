@@ -9,7 +9,7 @@ const register = (req, res) => {
 
   User.findOne({ email: req.body.email }).then((user) => {
     if (user) {
-      return res.status(400).json({ email: "Email already exists" });
+      return res.status(400).json({ error: "Email already exists" });
     } else {
         let role = 0
         if(req.body.role){
@@ -63,7 +63,7 @@ const signIn = (req, res) => {
             );
           }else{
             res.json({
-                error: "Password is incorrect"
+                error: "Invalid Credentials"
               });
           }
     });    
@@ -123,7 +123,7 @@ const updateUser = (req, res) => {
   User.findByIdAndUpdate(userId, updateData, { new: true })
     .then((user) => {
       if (!user) {
-        return res.status(404).json({ success: false, message: 'User not found' });
+        return res.status(404).json({ success: false, error: 'User not found' });
       }
 
       res.json({ success: true, user });

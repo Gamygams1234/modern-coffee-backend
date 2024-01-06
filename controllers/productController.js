@@ -1,6 +1,6 @@
 // controllers/productController.js
 
-const Product = require("../models/Product");
+const Product = require("../models/product");
 const fs = require("fs");
 const formidable = require("formidable");
 const lodash = require("lodash");
